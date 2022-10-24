@@ -1,4 +1,4 @@
-package com.example.dada.user
+package com.example.data.user
 
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.eq
@@ -12,11 +12,11 @@ class MongoUserDataSource(
         return users.findOne(UserPrivate::username eq username)
     }
 
-    override suspend fun getUserByEmail(email: String): UserPrivate? {
+    override suspend fun getUserByEmail(email: String?): UserPrivate? {
       return users.findOne(UserPrivate::email eq email)
     }
 
-    override suspend fun getUserByPhone(phone: String): UserPrivate? {
+    override suspend fun getUserByPhone(phone: String?): UserPrivate? {
         return users.findOne(UserPrivate::phone eq phone)
     }
 

@@ -1,5 +1,6 @@
-package com.example.dada.user
+package com.example.data.user
 
+import com.fasterxml.jackson.annotation.ObjectIdGenerators.UUIDGenerator
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
 
@@ -30,16 +31,15 @@ data class UserPublic(
 data class UserPrivate(
     @BsonId val id: ObjectId = ObjectId(),
     override val username: String,
-    override val discriminator: String,
+    override val discriminator: String = UUIDGenerator().generateId(id).toString().substring(0, 4),
     override val avatarUrl: String,
     override val bot: Boolean,
     override val bio: String?,
     val verified: Boolean,
-    val email: String,
+    val email: String?,
     val phone: String?,
     val password: String,
     val salt: String,
-    val locale: String,
 ) : User()
 
 data class UserReadyEvent(
