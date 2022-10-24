@@ -1,19 +1,17 @@
 package com.example
 
-import com.example.dada.user.MongoUserDataSource
-import com.example.dada.user.UserPrivate
+import com.example.data.user.MongoUserDataSource
 import io.ktor.server.application.*
 import com.example.plugins.*
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.example.security.hashing.SHA256HashingService
+import com.example.security.token.JwtTokenService
+import com.example.security.token.TokenConfig
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.reactivestreams.KMongo
 
 fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)
 
-@OptIn(DelicateCoroutinesApi::class)
 @Suppress("unused") // application.conf references the main function. This annotation prevents the IDE from marking it as unused.
 fun Application.module() {
     val mongoPw = System.getenv("MONGO_PW")
@@ -25,26 +23,18 @@ fun Application.module() {
 
     val userDataSource = MongoUserDataSource(db)
 
-    GlobalScope.launch {
-        val user = UserPrivate(
-            username = "Yiin",
-            password = "123456789",
-            discriminator = "0001",
-            avatarUrl = "https://qiniu.yyin.top/yuji.png",
-            bot = false,
-            bio = "hello world",
-            verified = true,
-            email = "bruneed237@gmail.com",
-            phone = "123456789",
-            locale = "zh-CN",
-            salt = "salt"
-        )
-        userDataSource.insertUser(user)
+    val tokenService = JwtTokenService()
+    val tokenConfig = TokenConfig(
+        issuer = environment.config.property("jwt.issuer").getString(),
+        audience = environment.config.property("jwt.audience").getString(),
+        expiresIn = 180L * 1000L * 60L * 60L * 24L,
+        secret = System.getenv("JWT_SECRET")
+    )
+    val hashService = SHA256HashingService()
+    configureSecurity(tokenConfig)
 
-    }
 
-    configureSecurity()
     configureMonitoring()
     configureSerialization()
-    configureRouting()
+    configureRouting(userDataSource, hashService, tokenConfig, tokenService)
 }

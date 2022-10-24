@@ -6,27 +6,27 @@ import io.ktor.server.auth.jwt.*
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
+import com.example.security.token.TokenConfig
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.request.*
 
-fun Application.configureSecurity() {
+fun Application.configureSecurity(config: TokenConfig) {
 
     authentication {
         jwt {
             //explicitly state it comes from our configureSecurity function of the Application class
-            val environment = this@configureSecurity.environment
-            val jwtAudience = environment.config.property("jwt.audience").getString()
-            realm = environment.config.property("jwt.realm").getString()
+            realm = this@configureSecurity.environment.config.property("jwt.realm").getString()
             verifier(
                 JWT
-                    .require(Algorithm.HMAC256("secret"))
-                    .withAudience(jwtAudience)
-                    .withIssuer(environment.config.property("jwt.domain").getString())
+                    .require(Algorithm.HMAC256(config.secret))
+                    .withAudience(config.audience)
+                    .withIssuer(config.issuer)
                     .build()
             )
+            // to check if the user is authorized to access the route
             validate { credential ->
-                if (credential.payload.audience.contains(jwtAudience)) JWTPrincipal(credential.payload) else null
+                if (credential.payload.audience.contains(config.audience)) JWTPrincipal(credential.payload) else null
             }
         }
     }
