@@ -1,0 +1,1 @@
+rootProject.name = "ktor-database-sample1"
